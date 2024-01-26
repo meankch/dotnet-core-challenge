@@ -8,10 +8,6 @@ namespace WebApplication
     {
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateLogger();
             CreateHostBuilder(args)
                 .Build()
                 .Run();
@@ -19,7 +15,10 @@ namespace WebApplication
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseSerilog()
+                .UseSerilog(
+                    (hostingContext, loggerConfiguration) => loggerConfiguration
+                            .Enrich.FromLogContext()
+                            .WriteTo.Console())
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }
 }

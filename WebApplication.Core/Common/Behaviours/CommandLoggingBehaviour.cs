@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace WebApplication.Core.Common.Behaviours
 {
-    public class CommandLoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class CommandLoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest  : notnull
     {
         private readonly ILogger<CommandLoggingBehaviour<TRequest, TResponse>> _logger;
 
