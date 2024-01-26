@@ -1,10 +1,11 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using WebApplication.Core.Common.Exceptions;
 using WebApplication.Core.Users.Common.Models;
+using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
 
 namespace WebApplication.Core.Users.Commands
@@ -19,19 +20,67 @@ namespace WebApplication.Core.Users.Commands
 
         public class Validator : AbstractValidator<UpdateUserCommand>
         {
-            public Validator()
+            private readonly IUserService _userService;
+
+            public Validator(IUserService userService)
             {
-                // TODO: Create validation rules for UpdateUserCommand so that all properties are required.
-                // If you are feeling ambitious, also create a validation rule that ensures the user exists in the database.
+                _userService = userService;
+
+                RuleFor(x => x.Id)
+                    .GreaterThan(0);
+
+                When(x => x.Id > 0, () =>
+                {
+                    RuleFor(x => x.Id)
+                        .CustomAsync(async (id, context, cancellationToken) =>
+                        {
+                            User? result = await _userService.GetAsync(id, cancellationToken);
+                            if (result is default(User)) throw new NotFoundException($"The user '{id}' could not be found.");
+                        });
+                });
+
+                RuleFor(x => x.GivenNames)
+                    .NotEmpty();
+
+                RuleFor(x => x.LastName)
+                    .NotEmpty();
+
+                RuleFor(x => x.EmailAddress)
+                    .NotEmpty();
+
+                RuleFor(x => x.MobileNumber)
+                    .NotEmpty();
             }
         }
 
         public class Handler : IRequestHandler<UpdateUserCommand, UserDto>
         {
+            private readonly IUserService _userService;
+            private readonly IMapper _mapper;
+
+            public Handler(IUserService userService, IMapper mapper)
+            {
+                _userService = userService;
+                _mapper = mapper;
+            }
+
             /// <inheritdoc />
             public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
             {
-                throw new NotImplementedException("Implement a way to update the user associated with the provided Id.");
+                User? user = await _userService.GetAsync(request.Id, cancellationToken);
+
+                if (user is default(User)) throw new NotFoundException($"The user '{request.Id}' could not be found.");
+
+                user.GivenNames = request.GivenNames;
+                user.LastName = request.LastName;
+
+                user.ContactDetail ??= new ContactDetail();
+                user.ContactDetail.EmailAddress = request.EmailAddress;
+                user.ContactDetail.MobileNumber = request.MobileNumber;
+
+                User updatedUser = await _userService.UpdateAsync(user, cancellationToken);
+                UserDto result = _mapper.Map<UserDto>(updatedUser);
+                return result;
             }
         }
     }
