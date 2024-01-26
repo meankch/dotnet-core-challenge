@@ -9,7 +9,7 @@ namespace WebApplication.Core.Common.Extensions
 {
     public static class CustomValidationExtension
     {
-        public static IRuleBuilderOptionsConditions<T, int> UserMustExistInDatabase<T>(this IRuleBuilder<T, int> ruleBuilder)
+        public static IRuleBuilderOptionsConditions<T, int> UserIdMustExistInDatabase<T>(this IRuleBuilder<T, int> ruleBuilder)
         {
             return ruleBuilder.CustomAsync(async (id, context, cancellationToken) =>
             {

@@ -26,7 +26,7 @@ namespace WebApplication.Core.Users.Commands
             {
                 RuleFor(x => x.Id)
                     .GreaterThan(0)
-                    .UserMustExistInDatabase().When(x => x.Id > 0, ApplyConditionTo.CurrentValidator);
+                    .UserIdMustExistInDatabase().When(x => x.Id > 0, ApplyConditionTo.CurrentValidator);
 
                 RuleFor(x => x.GivenNames)
                     .NotEmpty();
