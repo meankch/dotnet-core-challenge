@@ -61,7 +61,6 @@ namespace WebApplication.Core.Users.Commands
 
                 User addedUser = await _userService.AddAsync(user, cancellationToken);
                 UserDto result = _mapper.Map<UserDto>(addedUser);
-
                 return result;
             }
         }

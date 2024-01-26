@@ -81,13 +81,10 @@ namespace WebApplication.Infrastructure.Services
         /// <inheritdoc />
         public async Task<User?> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            User? user = await _dbContext.Users.Where(user => user.Id == id)
-                .Include(user => user.ContactDetail)
-                .FirstOrDefaultAsync();
-
+            User? user = await GetAsync(id, cancellationToken);
             if (user is default(User))
             {
-                _logger.LogInformation($"The user '{id}' could not be found.");
+                _logger.LogError($"The user '{id}' could not be found.");
                 return null;
             }
 

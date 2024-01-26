@@ -17,10 +17,30 @@ namespace WebApplication.Core.Users.Commands
 
         public class Validator : AbstractValidator<DeleteUserCommand>
         {
-            public Validator()
+            private readonly ILogger<DeleteUserCommand> _logger;
+            private readonly IUserService _userService;
+
+            public Validator(ILogger<DeleteUserCommand> logger, IUserService userService)
             {
+                _logger = logger;
+                _userService = userService;
+
                 RuleFor(x => x.Id)
                     .GreaterThan(0);
+
+                When(x => x.Id > 0, () =>
+                {
+                    RuleFor(x => x.Id)
+                        .CustomAsync(async (id, context, cancellationToken) =>
+                        {
+                            User? result = await _userService.GetAsync(id, cancellationToken);
+                            if (result is default(User))
+                            {
+                                _logger.LogError($"The user '{id}' could not be found.");
+                                throw new NotFoundException($"The user '{id}' could not be found.");
+                            }
+                        });
+                });
             }
         }
 
@@ -28,7 +48,6 @@ namespace WebApplication.Core.Users.Commands
         {
             private readonly IUserService _userService;
             private readonly IMapper _mapper;
-            private readonly ILogger<DeleteUserCommand> _logger;
 
             public Handler(IUserService userService, IMapper mapper)
             {
@@ -40,9 +59,6 @@ namespace WebApplication.Core.Users.Commands
             public async Task<UserDto> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
             {
                 User? deletedUser = await _userService.DeleteAsync(request.Id, cancellationToken);
-
-                if (deletedUser is default(User)) throw new NotFoundException($"The user '{request.Id}' could not be found.");
-
                 return _mapper.Map<UserDto>(deletedUser);
             }
         }

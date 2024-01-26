@@ -41,7 +41,6 @@ namespace WebApplication.Core.Users.Queries
             public async Task<UserDto> Handle(GetUserQuery request, CancellationToken cancellationToken)
             {
                 User? user = await _userService.GetAsync(request.Id, cancellationToken);
-
                 if (user is default(User))
                 {
                     _logger.LogError($"The user '{request.Id}' could not be found.");
@@ -49,7 +48,6 @@ namespace WebApplication.Core.Users.Queries
                 }
 
                 UserDto result = _mapper.Map<UserDto>(user);
-
                 return result;
             }
         }

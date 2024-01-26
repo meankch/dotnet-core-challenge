@@ -78,7 +78,6 @@ namespace WebApplication.Core.Users.Commands
             public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
             {
                 User? user = await _userService.GetAsync(request.Id, cancellationToken);
-
                 if (user is default(User))
                 {
                     _logger.LogError($"The user '{request.Id}' could not be found.");

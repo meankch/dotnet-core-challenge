@@ -33,7 +33,7 @@ namespace WebApplication.Controllers
             return Ok(result);
         }
 
-        [HttpGet("find")]
+        [HttpGet("Find")]
         [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> FindUsersAsync(
                        [FromQuery] FindUsersQuery query,
@@ -43,7 +43,7 @@ namespace WebApplication.Controllers
             return Ok(result);
         }
 
-        [HttpGet("list")]
+        [HttpGet("List")]
         [ProducesResponseType(typeof(PaginatedDto<IEnumerable<UserDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> ListUsersAsync(
                         [FromQuery] ListUsersQuery query,
