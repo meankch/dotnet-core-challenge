@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using WebApplication.Core.Common.Exceptions;
 using WebApplication.Core.Users.Common.Models;
 using WebApplication.Infrastructure.Entities;
@@ -27,6 +28,7 @@ namespace WebApplication.Core.Users.Commands
         {
             private readonly IUserService _userService;
             private readonly IMapper _mapper;
+            private readonly ILogger<DeleteUserCommand> _logger;
 
             public Handler(IUserService userService, IMapper mapper)
             {

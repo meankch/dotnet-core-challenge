@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WebApplication.Infrastructure.Contexts;
 using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
@@ -12,14 +13,20 @@ namespace WebApplication.Infrastructure.Services
 {
     public class UserService : IUserService
     {
+        private readonly ILogger<UserService> _logger;
         private readonly InMemoryContext _dbContext;
 
-        public UserService(InMemoryContext dbContext)
+        public UserService(ILogger<UserService> logger,
+            InMemoryContext dbContext)
         {
+            _logger = logger;
             _dbContext = dbContext;
 
             // this is a hack to seed data into the in memory database. Do not use this in production.
-            _dbContext.Database.EnsureCreated();
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+            {
+                _dbContext.Database.EnsureCreated();
+            }
         }
 
         /// <inheritdoc />
@@ -74,11 +81,15 @@ namespace WebApplication.Infrastructure.Services
         /// <inheritdoc />
         public async Task<User?> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            User? user = await _dbContext.Users.Where(u => u.Id == id)
-                .Include(u => u.ContactDetail)
+            User? user = await _dbContext.Users.Where(user => user.Id == id)
+                .Include(user => user.ContactDetail)
                 .FirstOrDefaultAsync();
 
-            if (user is default(User)) return null;
+            if (user is default(User))
+            {
+                _logger.LogInformation($"The user '{id}' could not be found.");
+                return null;
+            }
 
             var deletedUser = _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync(cancellationToken);

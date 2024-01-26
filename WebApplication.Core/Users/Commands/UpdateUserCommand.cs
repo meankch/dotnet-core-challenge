@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using WebApplication.Core.Common.Exceptions;
 using WebApplication.Core.Users.Common.Models;
 using WebApplication.Infrastructure.Entities;
@@ -20,11 +21,13 @@ namespace WebApplication.Core.Users.Commands
 
         public class Validator : AbstractValidator<UpdateUserCommand>
         {
+            private readonly ILogger<UpdateUserCommand> _logger;
             private readonly IUserService _userService;
 
-            public Validator(IUserService userService)
+            public Validator(IUserService userService, ILogger<UpdateUserCommand> logger)
             {
                 _userService = userService;
+                _logger = logger;
 
                 RuleFor(x => x.Id)
                     .GreaterThan(0);
@@ -35,7 +38,11 @@ namespace WebApplication.Core.Users.Commands
                         .CustomAsync(async (id, context, cancellationToken) =>
                         {
                             User? result = await _userService.GetAsync(id, cancellationToken);
-                            if (result is default(User)) throw new NotFoundException($"The user '{id}' could not be found.");
+                            if (result is default(User))
+                            {
+                                _logger.LogError($"The user '{id}' could not be found.");
+                                throw new NotFoundException($"The user '{id}' could not be found.");
+                            }
                         });
                 });
 
@@ -55,11 +62,14 @@ namespace WebApplication.Core.Users.Commands
 
         public class Handler : IRequestHandler<UpdateUserCommand, UserDto>
         {
+            private readonly ILogger<UpdateUserCommand> _logger;
             private readonly IUserService _userService;
             private readonly IMapper _mapper;
 
-            public Handler(IUserService userService, IMapper mapper)
+            public Handler(ILogger<UpdateUserCommand> logger,
+                IUserService userService, IMapper mapper)
             {
+                _logger = logger;
                 _userService = userService;
                 _mapper = mapper;
             }
@@ -69,7 +79,11 @@ namespace WebApplication.Core.Users.Commands
             {
                 User? user = await _userService.GetAsync(request.Id, cancellationToken);
 
-                if (user is default(User)) throw new NotFoundException($"The user '{request.Id}' could not be found.");
+                if (user is default(User))
+                {
+                    _logger.LogError($"The user '{request.Id}' could not be found.");
+                    throw new NotFoundException($"The user '{request.Id}' could not be found.");
+                }
 
                 user.GivenNames = request.GivenNames;
                 user.LastName = request.LastName;

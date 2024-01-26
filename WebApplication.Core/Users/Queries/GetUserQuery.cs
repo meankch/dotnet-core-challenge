@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using WebApplication.Core.Common.Exceptions;
 using WebApplication.Core.Users.Common.Models;
 using WebApplication.Infrastructure.Entities;
@@ -25,11 +26,13 @@ namespace WebApplication.Core.Users.Queries
 
         public class Handler : IRequestHandler<GetUserQuery, UserDto>
         {
+            private readonly ILogger<GetUserQuery> _logger;
             private readonly IUserService _userService;
             private readonly IMapper _mapper;
 
-            public Handler(IUserService userService, IMapper mapper)
+            public Handler(IUserService userService, IMapper mapper, ILogger<GetUserQuery> logger)
             {
+                _logger = logger;
                 _userService = userService;
                 _mapper = mapper;
             }
@@ -39,7 +42,11 @@ namespace WebApplication.Core.Users.Queries
             {
                 User? user = await _userService.GetAsync(request.Id, cancellationToken);
 
-                if (user is default(User)) throw new NotFoundException($"The user '{request.Id}' could not be found.");
+                if (user is default(User))
+                {
+                    _logger.LogError($"The user '{request.Id}' could not be found.");
+                    throw new NotFoundException($"The user '{request.Id}' could not be found.");
+                }
 
                 UserDto result = _mapper.Map<UserDto>(user);
 

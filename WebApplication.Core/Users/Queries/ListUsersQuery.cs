@@ -22,7 +22,7 @@ namespace WebApplication.Core.Users.Queries
             public Validator()
             {
                 RuleFor(query => query.PageNumber)
-                    .Must(x => x > 0)
+                    .Must(value => value > 0)
                     .WithMessage("'Page Number' must be greater than '0'.");
             }
         }
