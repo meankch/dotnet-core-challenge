@@ -13,7 +13,7 @@ namespace WebApplication.Core.Common.Extensions
         {
             return ruleBuilder.CustomAsync(async (id, context, cancellationToken) =>
             {
-                using (var dbContext = new InMemoryContext()) 
+                using (InMemoryContext dbContext = new InMemoryContext()) 
                 {
                     User? user = await dbContext.Users
                         .Where(user => user.Id == id)

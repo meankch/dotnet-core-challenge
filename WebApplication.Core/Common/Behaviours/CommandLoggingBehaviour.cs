@@ -17,11 +17,11 @@ namespace WebApplication.Core.Common.Behaviours
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            var requestName = request?.GetType().Name;
+            string? requestName = request?.GetType().Name;
 
             _logger.LogInformation($"[START] {requestName}");
             TResponse response;
-            var stopwatch = Stopwatch.StartNew();
+            Stopwatch? stopwatch = Stopwatch.StartNew();
 
             try
             {

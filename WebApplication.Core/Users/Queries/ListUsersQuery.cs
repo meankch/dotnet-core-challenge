@@ -41,8 +41,8 @@ namespace WebApplication.Core.Users.Queries
             /// <inheritdoc />
             public async Task<PaginatedDto<IEnumerable<UserDto>>> Handle(ListUsersQuery request, CancellationToken cancellationToken)
             {
-                var totalUsers = await _userService.CountAsync(cancellationToken);
-                var totalPages = Math.Ceiling(totalUsers / (double)request.ItemsPerPage);
+                int totalUsers = await _userService.CountAsync(cancellationToken);
+                double totalPages = Math.Ceiling(totalUsers / (double)request.ItemsPerPage);
 
                 IEnumerable<User>? users = await _userService.GetPaginatedAsync(request.PageNumber, request.ItemsPerPage, cancellationToken);
 

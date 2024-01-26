@@ -32,9 +32,9 @@ namespace WebApplication.Core.Common.Behaviours
                 return await next();
             }
 
-            var context = new ValidationContext<TRequest>(request);
+            ValidationContext<TRequest> context = new ValidationContext<TRequest>(request);
 
-            var errorsDictionary = _validators
+            IEnumerable<ValidationFailure> validationFailures = _validators
                 .Select(req => req.Validate(context))
                 .SelectMany(validationResult => validationResult.Errors)
                 .Where(validationFailure => validationFailure != null)
@@ -45,10 +45,10 @@ namespace WebApplication.Core.Common.Behaviours
                     new ValidationFailure(propertyName, string.Join(",", errorMessages.Distinct()))
                 );
 
-            if (errorsDictionary.Any())
+            if (validationFailures.Any())
             {
-                _logger.LogError("Validation errors - {Errors}", errorsDictionary);
-                throw new ValidationException(errorsDictionary);
+                _logger.LogError("Validation errors - {Errors}", validationFailures);
+                throw new ValidationException(validationFailures);
             }
 
             return await next();

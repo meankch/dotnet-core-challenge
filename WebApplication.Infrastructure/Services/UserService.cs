@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WebApplication.Infrastructure.Contexts;
 using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
@@ -61,7 +62,7 @@ namespace WebApplication.Infrastructure.Services
         /// <inheritdoc />
         public async Task<User> AddAsync(User user, CancellationToken cancellationToken = default)
         {
-            var addedUser = await _dbContext.Users.AddAsync(user, cancellationToken);
+            EntityEntry<User>? addedUser = await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return addedUser.Entity;
         }
@@ -69,7 +70,7 @@ namespace WebApplication.Infrastructure.Services
         /// <inheritdoc />
         public async Task<User> UpdateAsync(User user, CancellationToken cancellationToken = default)
         {
-            var updatedUser = _dbContext.Users.Update(user);
+            EntityEntry<User>? updatedUser = _dbContext.Users.Update(user);
             await _dbContext.SaveChangesAsync(cancellationToken);
             return updatedUser.Entity;
         }
@@ -80,7 +81,7 @@ namespace WebApplication.Infrastructure.Services
             User? user = await GetAsync(id, cancellationToken);
             if (user is default(User)) return null;
 
-            var deletedUser = _dbContext.Users.Remove(user);
+            EntityEntry<User>? deletedUser = _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             return deletedUser.Entity;
