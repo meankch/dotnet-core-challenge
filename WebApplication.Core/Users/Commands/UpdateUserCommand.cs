@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using WebApplication.Core.Common.Exceptions;
 using WebApplication.Core.Common.Extensions;
 using WebApplication.Core.Users.Common.Models;
-using WebApplication.Infrastructure.Contexts;
 using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
 
@@ -23,15 +22,11 @@ namespace WebApplication.Core.Users.Commands
 
         public class Validator : AbstractValidator<UpdateUserCommand>
         {
-            private readonly InMemoryContext _dbContext;
-
-            public Validator(InMemoryContext dbContext)
+            public Validator()
             {
-                _dbContext = dbContext;
-
                 RuleFor(x => x.Id)
                     .GreaterThan(0)
-                    .UserMustExistInDatabase(_dbContext.Users).When(x => x.Id > 0, ApplyConditionTo.CurrentValidator);
+                    .UserMustExistInDatabase().When(x => x.Id > 0, ApplyConditionTo.CurrentValidator);
 
                 RuleFor(x => x.GivenNames)
                     .NotEmpty();
