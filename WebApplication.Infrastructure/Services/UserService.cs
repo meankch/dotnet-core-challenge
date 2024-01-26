@@ -25,47 +25,71 @@ namespace WebApplication.Infrastructure.Services
         /// <inheritdoc />
         public async Task<User?> GetAsync(int id, CancellationToken cancellationToken = default)
         {
-            User? user = await _dbContext.Users.Where(user => user.Id == id)
-                                         .Include(x => x.ContactDetail)
-                                         .FirstOrDefaultAsync(cancellationToken);
-
+            User? user = await _dbContext.Users
+                    .Where(user => user.Id == id)
+                    .Include(x => x.ContactDetail)
+                    .FirstOrDefaultAsync(cancellationToken);
             return user;
         }
 
         /// <inheritdoc />
         public async Task<IEnumerable<User>> FindAsync(string? givenNames, string? lastName, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to find users that match the provided given names OR last name.");
+            IEnumerable<User> results = await _dbContext.Users
+                    .Where(user =>
+                        (givenNames != null && user.GivenNames.Contains(givenNames))
+                        || (lastName != null && user.LastName.Contains(lastName)))
+                    .Include(user => user.ContactDetail)
+                    .ToListAsync(cancellationToken);
+            return results;
         }
 
         /// <inheritdoc />
         public async Task<IEnumerable<User>> GetPaginatedAsync(int page, int count, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to get a 'page' of users.");
+            IEnumerable<User> results = await _dbContext.Users
+                    .Skip((page - 1) * count)
+                    .Take(count)
+                    .Include(user => user.ContactDetail)
+                    .ToListAsync(cancellationToken);
+            return results;
         }
 
         /// <inheritdoc />
         public async Task<User> AddAsync(User user, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to add a new user, including their contact details.");
+            var addedUser = await _dbContext.Users.AddAsync(user, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return addedUser.Entity;
         }
 
         /// <inheritdoc />
         public async Task<User> UpdateAsync(User user, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to update an existing user, including their contact details.");
+            var updatedUser = _dbContext.Users.Update(user);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return updatedUser.Entity;
         }
 
         /// <inheritdoc />
         public async Task<User?> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to delete an existing user, including their contact details.");
+            User? user = await _dbContext.Users.Where(u => u.Id == id)
+                .Include(u => u.ContactDetail)
+                .FirstOrDefaultAsync();
+
+            if (user is default(User)) return null;
+
+            var deletedUser = _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return deletedUser.Entity;
         }
 
         /// <inheritdoc />
         public async Task<int> CountAsync(CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Implement a way to count the number of users in the database.");
+            return await _dbContext.Users.CountAsync(cancellationToken);
         }
     }
 }
