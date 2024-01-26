@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using WebApplication.Infrastructure.Contexts;
 using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
@@ -13,13 +12,10 @@ namespace WebApplication.Infrastructure.Services
 {
     public class UserService : IUserService
     {
-        private readonly ILogger<UserService> _logger;
         private readonly InMemoryContext _dbContext;
 
-        public UserService(ILogger<UserService> logger,
-            InMemoryContext dbContext)
+        public UserService(InMemoryContext dbContext)
         {
-            _logger = logger;
             _dbContext = dbContext;
 
             // this is a hack to seed data into the in memory database. Do not use this in production.
@@ -82,11 +78,7 @@ namespace WebApplication.Infrastructure.Services
         public async Task<User?> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
             User? user = await GetAsync(id, cancellationToken);
-            if (user is default(User))
-            {
-                _logger.LogError($"The user '{id}' could not be found.");
-                return null;
-            }
+            if (user is default(User)) return null;
 
             var deletedUser = _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync(cancellationToken);

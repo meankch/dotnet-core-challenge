@@ -5,7 +5,9 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using WebApplication.Core.Common.Exceptions;
+using WebApplication.Core.Common.Extensions;
 using WebApplication.Core.Users.Common.Models;
+using WebApplication.Infrastructure.Contexts;
 using WebApplication.Infrastructure.Entities;
 using WebApplication.Infrastructure.Interfaces;
 
@@ -21,30 +23,15 @@ namespace WebApplication.Core.Users.Commands
 
         public class Validator : AbstractValidator<UpdateUserCommand>
         {
-            private readonly ILogger<UpdateUserCommand> _logger;
-            private readonly IUserService _userService;
+            private readonly InMemoryContext _dbContext;
 
-            public Validator(IUserService userService, ILogger<UpdateUserCommand> logger)
+            public Validator(InMemoryContext dbContext)
             {
-                _userService = userService;
-                _logger = logger;
+                _dbContext = dbContext;
 
                 RuleFor(x => x.Id)
-                    .GreaterThan(0);
-
-                When(x => x.Id > 0, () =>
-                {
-                    RuleFor(x => x.Id)
-                        .CustomAsync(async (id, context, cancellationToken) =>
-                        {
-                            User? result = await _userService.GetAsync(id, cancellationToken);
-                            if (result is default(User))
-                            {
-                                _logger.LogError($"The user '{id}' could not be found.");
-                                throw new NotFoundException($"The user '{id}' could not be found.");
-                            }
-                        });
-                });
+                    .GreaterThan(0)
+                    .UserMustExistInDatabase(_dbContext.Users).When(x => x.Id > 0, ApplyConditionTo.CurrentValidator);
 
                 RuleFor(x => x.GivenNames)
                     .NotEmpty();

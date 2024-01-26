@@ -5,16 +5,20 @@ using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace WebApplication.Core.Common.Behaviours
 {
     public class RequestValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
     {
+        private readonly ILogger<RequestValidationBehaviour<TRequest, TResponse>> _logger;
         private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-        public RequestValidationBehaviour(IEnumerable<IValidator<TRequest>> validators)
+        public RequestValidationBehaviour(IEnumerable<IValidator<TRequest>> validators,
+            ILogger<RequestValidationBehaviour<TRequest, TResponse>> logger)
         {
             _validators = validators;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -43,6 +47,7 @@ namespace WebApplication.Core.Common.Behaviours
 
             if (errorsDictionary.Any())
             {
+                _logger.LogError("Validation errors - {Errors}", errorsDictionary);
                 throw new ValidationException(errorsDictionary);
             }
 
