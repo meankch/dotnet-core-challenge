@@ -20,7 +20,7 @@ namespace WebApplication.Infrastructure.Services
             _dbContext = dbContext;
 
             // this is a hack to seed data into the in memory database. Do not use this in production.
-            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development")
             {
                 _dbContext.Database.EnsureCreated();
             }
