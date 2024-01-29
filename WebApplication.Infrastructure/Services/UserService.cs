@@ -84,6 +84,12 @@ namespace WebApplication.Infrastructure.Services
             EntityEntry<User>? deletedUser = _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            if (user.ContactDetail != default(ContactDetail))
+            {
+                _dbContext.ContactDetails.Remove(user.ContactDetail);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
             return deletedUser.Entity;
         }
 
